@@ -130,7 +130,12 @@ Metody popsané v této sekci odhadují natočení hlavy ve třech stupních vol
 \end{figure}
 
 \subsection{Metoda 1.: PnP}
-Metoda PnP byla implementována jako první, a byla zprvu použita převážně pro kontrolu ostatních metod při jejich implementaci. Jedná se o metodu, kde je hledána transformace mezi nalezenými klíčovými body ze snímku a 3D modelem obličeje. V implementaci byl použit zjednodušený obecný model o 6 bodech. Konkrétně se jedná o body ve vzdálenějším rohu levého a pravého oka (body 37, 46), koutky úst (body 49, 55), špička nosu (bod 31) a brada (bod 9). Pro výpočet je však potřeba znát navíc ještě optický střed kamery a ohniskovou vzdálenost. Jelikož ve většině případů jsou tyto údaje neznámé, musejí být vhodně aproximovány. Následně je aplikována metoda \texttt{cv2.solvePnP}, pomocí které získáme translaci a rotaci pro namapování obličeje na 3D model. Metoda byla použita s využitím Levenberg–Marquardtova algoritmu poskytnutém knihovnou openCV. Algoritmus je numerickou metodou snažcí se iterativně co nejvíce přiblížit lokálnímu minimu přičítáním vypočtených hodnot k počátečnímu odhadu.
+Metoda PnP byla převážně použita pro pro kontrolu ostatních metod při jejich implementaci. Jedná se o metodu, kde je hledána transformace mezi nalezenými klíčovými body ze snímku a 3D modelem obličeje. 
+
+V implementaci byl použit zjednodušený obecný model o 6 bodech. Konkrétně se jedná o body ve vzdálenějším rohu levého a pravého oka (body 37, 46), koutky úst (body 49, 55), špička nosu (bod 31) a brada (bod 9). Pro výpočet je však potřeba znát navíc ještě optický střed kamery a ohniskovou vzdálenost. Jelikož ve většině případů jsou tyto údaje neznámé, musejí být vhodně aproximovány. 
+
+Následně je aplikována metoda \texttt{cv2.solvePnP}, pomocí které získáme translaci a rotaci pro namapování obličeje na 3D model. Metoda byla použita s využitím Levenberg–Marquardtova algoritmu poskytnutém knihovnou openCV. Algoritmus je numerickou metodou snažící se iterativně co nejvíce přiblížit lokálnímu minimu přičítáním vypočtených hodnot k počátečnímu odhadu.
+
 \subsection{Metoda 2.: Tracking}
 Na rozdíl od metody uvedené v předchozí sekci odhad natočení hlavy pomocí tracking (sledování pohybu) vyžaduje více snímků pro svoji funkčnost. Není tedy možné odhadnout úhly na základě jednoho snímku. Na místo toho je využit první snímek jako inicializační -- předpokládá se, že první snímek má tedy všechny úhly nulové. Vhodným rozšířením by byla inicializace za pomocí jedné z ostatních metod. Metoda byla implementována na základě \cite{est_for_mobile}.
 
@@ -257,17 +262,18 @@ Jelikož naším cílem je zjistit úhel pitch ($\alpha$), musíme rovnici uprav
 
 \section{Implementace}
 \subsection{Použité technologie}
-Všechny představené metody byly implementovány v jazyce Python3\footnote{\url{https://www.python.org/}}. Pro práci s vektory/maticemi je využita knihovna numpy\footnote{\url{https://numpy.org/}}. Pro samotnou práci s obrazem je použita knihovna OpenCV\footnote{\url{https://opencv.org/}} a dlib. 
+Všechny představené metody byly implementovány v jazyce Python3\footnote{\url{https://www.python.org/}}. Pro práci s vektory/maticemi je využita knihovna numpy\footnote{\url{https://numpy.org/}}. Pro samotnou práci s obrazem je použita knihovna OpenCV\footnote{\url{https://opencv.org/}} a dlib. K vygenerování grafů pro vyhodnocení byla použita knihovna plotly\footnote{\url{https://plot.ly}}.
 
 Pro vývoj jsme využili IDE PyCharm\footnote{\url{https://www.jetbrains.com/pycharm/}} a verzovacího systému git. Repository je možné najít na adrese \url{https://github.com/PetrFlajsingr/BIO-head-pose-estimation}.
 \subsection{Použití programu}
 Použití je uvedeno v souboru \texttt{README.md} nacházející se ve složce skriptu, případně je lze zjistit pomocí přepínače \texttt{-h}.
 
 \section{Experimenty a vyhodnocení}
-Vyhodnocení bylo provedeno nad datasetem Gaze Interaction for Everybody (dále jen GI4E) \footnote{\url{http://www.unavarra.es/gi4e/databases}}, který veřejně poskytuje Public University of Navarra. Poskytované datasety jsou ve formě videí s přiloženými údaji o natočení osoby v každém snímku videa. Níže jsou uváděny grafy reprezentující červenou křivkou námi vyhodnocené úhly natočení a modrou křivkou údaje poskytnuté v datasetu. Všechny poskytnuté grafy se vztahují k totožnému videu, ve kterém jsou zastoupeny postupně všechny úhly natočení.
+Vyhodnocení bylo provedeno nad datasetem Gaze Interaction for Everybody (dále jen GI4E\footnote{\url{http://www.unavarra.es/gi4e/databases}}), který veřejně poskytuje Public University of Navarra. Poskytované datasety jsou ve formě videí s přiloženými údaji o natočení osoby v každém snímku videa. Níže jsou uváděny grafy reprezentující červenou křivkou námi vyhodnocené úhly natočení a modrou křivkou údaje poskytnuté v datasetu. Všechny poskytnuté grafy se vztahují k totožnému videu, ve kterém jsou zastoupeny postupně všechny úhly natočení.
 \subsection{Metoda 1.: PnP}
-Metoda PnP přesně kopíruje křivku očekávaných hodnot, s tím že rozmezí chyby je řádově v jednotkách stupňů. Tím pádem bychom mohli tuto metodu zařadit mezi přesnější metody, nicméně je patrná skoková změna i ve větších hodnotách mezi jednotlivými snímky vytvářející nehladký průběh grafu s občasnými špičkami. 
-\begin{figure*}[!h]
+Metoda PnP přesně kopíruje křivku očekávaných hodnot, s tím že rozmezí chyby je řádově v jednotkách stupňů. Tím pádem bychom mohli tuto metodu zařadit mezi přesnější metody, nicméně je patrná skoková změna i ve větších hodnotách mezi jednotlivými snímky vytvářející nehladký průběh grafu s občasnými špičkami.
+
+\begin{figure}[H]
   \centering
   \captionsetup{justification=centering}
   \begin{subfigure}[b]{0.32\textwidth}
@@ -289,10 +295,12 @@ Metoda PnP přesně kopíruje křivku očekávaných hodnot, s tím že rozmezí
   \end{subfigure}
   \caption{Srovnání průběhu pro metodu PnP}
   \label{fig:pnp_graphs}
-\end{figure*}
+\end{figure}
+
 \subsection{Metoda 2.: Tracking}
-Výpočet úhlu roll je zde přesnější než při metodě PnP, nicméně u úhlů yaw a pitch metoda velmi zaostává. Přestože průběh grafu metody trakcing je velmi hladký a opět do jisté míry kopíruje křivku představující pravdivé hodnoty, u úhlů pitch a yaw jsou vypočítané hodnoty velmi odlišné. 
-\begin{figure*}[!h]
+Výpočet úhlu roll je zde přesnější než při metodě PnP, nicméně u úhlů yaw a pitch metoda velmi zaostává. Přestože průběh grafu metody trakcing je velmi hladký a opět do jisté míry kopíruje křivku představující pravdivé hodnoty, u úhlů pitch a yaw jsou vypočítané hodnoty velmi odlišné.
+
+\begin{figure}[H]
   \centering
   \captionsetup{justification=centering}
   \begin{subfigure}[b]{0.32\textwidth}
@@ -314,10 +322,12 @@ Výpočet úhlu roll je zde přesnější než při metodě PnP, nicméně u úh
   \end{subfigure}
   \caption{Srovnání průběhu pro metodu tracking}
   \label{fig:track_graphs}
-\end{figure*}
+\end{figure}
+
 \subsection{Metoda 3.: Geometrie}
 Metoda využivající vzathy antropometrických bodů vykazuje na grafu přibližně podobné výsledky jako metoda PnP, s tím rozdílem, že má velmi přesný roll úhel stejně jako metoda tracking. Nicméně i zde dostáváme často "zubovitý" tvar grafu.
-\begin{figure}[!h]
+
+\begin{figure}[H]
   \centering
   \captionsetup{justification=centering}
   \begin{subfigure}[b]{0.32\textwidth}
@@ -340,15 +350,19 @@ Metoda využivající vzathy antropometrických bodů vykazuje na grafu přibli�
 \end{figure}
 
 \subsection{Srovnání metod}
-Při využití metody na základě PnP a geometrie dostáváme nejpřesnější výsledky, nicméně i zde jsou pozorovány silné odchylky. Tyto odchylky závisí na přesnosti výpočtu klíčových bodů obličeje a v případě metody PnP vznikají i použitím obecného modelu obličeje daného pouze několika body, a aproximací vlastností kamery. Chyby u geometrické metody pak navíc mohou vznikat z předpokladu dokonalého a symetrického obličeje. U metody sledování bodů nastává problém, pokud dochází k pohybu hlavy bez rotace. Výše popsaná metoda pak pohyb chybně vyhodnotí jako rotaci a dochází k odchýlení od pravdivých hodnot. Přes zmíněné omezení jde však o velice rychlou metodu vhodnou pro mobilní zařízení. Níže jsou uvedeny údaje průměrné chyby a směrodatné odchylky vypočítané vůči databázi GI4E nad jedním z obličejů. Výsledné hodnoty jsou pro přehlednost zaokrouhleny.
+Při využití metody na základě PnP a geometrie dostáváme nejpřesnější výsledky, nicméně i zde jsou pozorovány silné odchylky. Tyto odchylky závisí na přesnosti výpočtu klíčových bodů obličeje a v případě metody PnP vznikají i použitím obecného modelu obličeje daného pouze několika body, a aproximací vlastností kamery. 
+
+Chyby u geometrické metody pak navíc mohou vznikat z předpokladu dokonalého a symetrického obličeje. U metody sledování bodů nastává problém, pokud dochází k pohybu hlavy bez rotace. Výše popsaná metoda pak pohyb chybně vyhodnotí jako rotaci a dochází k odchýlení od pravdivých hodnot. Přes zmíněné omezení jde však o velice rychlou metodu vhodnou pro mobilní zařízení. 
+
+Níže jsou uvedeny údaje průměrné chyby a směrodatné odchylky vypočítané vůči databázi GI4E nad několika z obličejů. Výsledné hodnoty jsou pro přehlednost zaokrouhleny.
 
 \begin{table}[h]
 \centering
 \begin{tabular}{|l|l|l|l|}
 \hline
 \textit{Metoda PnP}                & \textbf{Roll[\degree]} & \textbf{Yaw[\degree]} & \textbf{Pitch[\degree]} \\ \hline
-\textbf{Průměrná absolutní chyba}  & 1.57504  & 10.76924 & 12.89150    \\ \hline
-\textbf{Směrodatná odchylka chyby} & 2.35969 & 14.41492 & 10.12558     \\ \hline
+\textbf{Průměrná absolutní chyba}  & 1.87944819  & 3.846113639 & 4.587338469    \\ \hline
+\textbf{Průměrná směrodatná odchylka chyby} & 4.914020841 & 6.139181454 & 4.162728145     \\ \hline
 \end{tabular}
 \caption{Chyby metody PnP}
 \label{tab:pnp_err}
@@ -359,8 +373,8 @@ Při využití metody na základě PnP a geometrie dostáváme nejpřesnější 
 \begin{tabular}{|l|l|l|l|}
 \hline
 \textit{Metoda tracking}                & \textbf{Roll[\degree]} & \textbf{Yaw[\degree]} & \textbf{Pitch[\degree]} \\ \hline
-\textbf{Průměrná absolutní chyba}  & 0.59938 & 25.11679 & 16.27871    \\ \hline
-\textbf{Směrodatná odchylka chyby} & 0.68549  & 38.52419 & 18.28342     \\ \hline
+\textbf{Průměrná absolutní chyba}  & 0.586350138 & 8.203542315 & 4.341512761    \\ \hline
+\textbf{Průměrná směrodatná odchylka chyby} & 1.184606309  & 15.071397189 & 6.313952331     \\ \hline
 \end{tabular}
 \caption{Chyby metody tracking}
 \label{tab:track_err}
@@ -371,8 +385,8 @@ Při využití metody na základě PnP a geometrie dostáváme nejpřesnější 
 \begin{tabular}{|l|l|l|l|}
 \hline
 \textit{Metoda geometrie}                & \textbf{Roll[\degree]} & \textbf{Yaw[\degree]} & \textbf{Pitch[\degree]} \\ \hline
-\textbf{Průměrná absolutní chyba}  & 0.59530 & 10.10615 & 17.44231    \\ \hline
-\textbf{Směrodatná odchylka chyby} & 0.6769 & 14.73759 & 11.50178     \\ \hline
+\textbf{Průměrná absolutní chyba}  & 0.582392442 & 4.834934991 & 5.987510525    \\ \hline
+\textbf{Průměrná směrodatná odchylka chyby} & 1.179549572 & 4.317855862 & 3.039883609     \\ \hline
 \end{tabular}
 \caption{Chyby metody geometrie}
 \label{tab:geo_err}
@@ -395,7 +409,11 @@ Geometrie & 21776                             & 45 $\mu$s                       
 \end{table}
 
 \section{Závěr}
-Námi poskytované metody dostačují pro přibližné určení natočení hlavy, nicméně pro přesnější výsledky by bylo nutné naše metody zdokonalit, případně hlouběji nastudovat problematiku a přijít s úplně novou metodou. U metody PnP by například stálo za to experimentovat s rozdílnými modely obličeje, lišící se počtem a hodnotami bodů, případně využít rozdílné algoritmy pro řešení poskytované v knihovně openCV. Při známých vlastnostech kamery by došlo opět k dalšímu zpřesnění. U výpočtu pomocí geometrie by bylo vhodné prozkoumat možnost využít přesnější geometrický modelu s použitím vícero bodů a zamyslet se a případně určitým způsobem zakomponovat rozdíly etnické, pohlaví a stáří.
+Implementované metody dostačují pro přibližné určení natočení hlavy, nicméně pro přesnější výsledky by bylo nutné je metody zdokonalit, případně přijít s alternativou. 
+
+U metody PnP by například stálo za to experimentovat s rozdílnými modely obličeje, lišící se počtem a hodnotami bodů, případně využít rozdílné algoritmy pro řešení poskytované v knihovně OpenCV. Při známých vlastnostech kamery by došlo opět k dalšímu zpřesnění. 
+
+U výpočtu pomocí geometrie by bylo vhodné prozkoumat možnost využít přesnější geometrický modelu s použitím vícero bodů a zamyslet se a případně určitým způsobem zakomponovat rozdíly etnické, pohlaví a stáří.
 
 \nocite{est_for_mobile}
 \bibliographystyle{plain}
